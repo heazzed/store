@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets
+from Entities.good import Good
 
 
 class AddGood(QtWidgets.QDialog):
@@ -60,14 +61,50 @@ class AddGood(QtWidgets.QDialog):
         self.modificationBox.setLayout(self.modificationLayout)
         gridLayout.addWidget(self.modificationBox, 3, 0)
 
-        # button clear
+        self.listTypeRadioButtons = [self.typeButton0, self.typeButton1, self.typeButton2]
+        self.listModificationRadioButtons = [self.modificationButton0, self.modificationButton1,
+                                             self.modificationButton2]
+        self.listRadioButtons = []
+        for btn in self.listTypeRadioButtons:
+            self.listRadioButtons.append(btn)
+        for btn in self.listModificationRadioButtons:
+            self.listRadioButtons.append(btn)
+
+        self.clearButton = QtWidgets.QPushButton("Очистить", self)
+        self.clearButton.clicked.connect(self.clear)
 
         self.okButton = QtWidgets.QPushButton("Сохранить", self)
         self.okButton.clicked.connect(self.save)
 
-        gridLayout.addWidget(self.okButton, 4, 0)
+        gridLayout.addWidget(self.clearButton, 4, 0)
+        gridLayout.addWidget(self.okButton, 5, 0)
         gridLayout.setColumnMinimumWidth(0, 200)
         self.setLayout(gridLayout)
 
     def save(self):
-        print(self.nameGoodLineEdit.text())
+        g = Good()
+        g.name = self.nameGoodLineEdit.text()
+        g.quantity = self.quantityGoodLineEdit.text()
+        g.buyPrice = self.buyPriceGoodLineEdit.text()
+        g.salePrice = self.salePriceGoodLineEdit.text()
+        for btn in self.listTypeRadioButtons:
+            if btn.isChecked():
+                g.type = btn.text()
+
+        for btn in self.listModificationRadioButtons:
+            if btn.isChecked():
+                g.modification = btn.text()
+
+        print("Сохранен товар:")
+        g.show()
+
+    def clear(self):
+        self.nameGoodLineEdit.clear()
+        self.quantityGoodLineEdit.clear()
+        self.buyPriceGoodLineEdit.clear()
+        self.salePriceGoodLineEdit.clear()
+        for btn in self.listRadioButtons:
+            if btn.isChecked():
+                btn.setAutoExclusive(False)
+                btn.setChecked(False)
+                btn.setAutoExclusive(True)

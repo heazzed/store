@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets
 
-from add_good import AddGood
+from Pages.add_good import AddGood
 
 app = QtWidgets.QApplication([])
 
