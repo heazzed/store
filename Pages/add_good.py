@@ -1,13 +1,16 @@
 from PyQt5 import QtWidgets
 from Entities.good import Good
+from Repositories.good_repository import GoodRepository
 
 
 class AddGood(QtWidgets.QDialog):
-    def __init__(self):
+    def __init__(self, size):
         super().__init__()
 
         self.setWindowTitle("Добавление товара")
-        self.setGeometry(0, 0, 400, 400)
+
+        self.frameGeometry().moveCenter(size)
+
         formLayout = QtWidgets.QFormLayout()
         gridLayout = QtWidgets.QGridLayout()
 
@@ -49,26 +52,23 @@ class AddGood(QtWidgets.QDialog):
         self.typeBox.setLayout(self.typeLayout)
         gridLayout.addWidget(self.typeBox, 2, 0)
 
-        self.modificationBox = QtWidgets.QGroupBox("Модификация")
-        self.modificationButton0 = QtWidgets.QRadioButton("Обычный товар")
-        self.modificationButton1 = QtWidgets.QRadioButton("Комплект")
-        self.modificationButton2 = QtWidgets.QRadioButton("Набор")
+        self.genderBox = QtWidgets.QGroupBox("Пол")
+        self.genderCheckBox0 = QtWidgets.QCheckBox("Для девочек")
+        self.genderCheckBox1 = QtWidgets.QCheckBox("Для мальчиков")
 
-        self.modificationLayout = QtWidgets.QVBoxLayout()
-        self.modificationLayout.addWidget(self.modificationButton0)
-        self.modificationLayout.addWidget(self.modificationButton1)
-        self.modificationLayout.addWidget(self.modificationButton2)
-        self.modificationBox.setLayout(self.modificationLayout)
-        gridLayout.addWidget(self.modificationBox, 3, 0)
+        self.genderLayout = QtWidgets.QVBoxLayout()
+        self.genderLayout.addWidget(self.genderCheckBox0)
+        self.genderLayout.addWidget(self.genderCheckBox1)
+        self.genderBox.setLayout(self.genderLayout)
+        gridLayout.addWidget(self.genderBox, 3, 0)
 
         self.listTypeRadioButtons = [self.typeButton0, self.typeButton1, self.typeButton2]
-        self.listModificationRadioButtons = [self.modificationButton0, self.modificationButton1,
-                                             self.modificationButton2]
-        self.listRadioButtons = []
+        self.listGenderCheckBoxButtons = [self.genderCheckBox0, self.genderCheckBox1]
+        self.listButtons = []
         for btn in self.listTypeRadioButtons:
-            self.listRadioButtons.append(btn)
-        for btn in self.listModificationRadioButtons:
-            self.listRadioButtons.append(btn)
+            self.listButtons.append(btn)
+        for btn in self.listGenderCheckBoxButtons:
+            self.listButtons.append(btn)
 
         self.clearButton = QtWidgets.QPushButton("Очистить", self)
         self.clearButton.clicked.connect(self.clear)
@@ -78,7 +78,7 @@ class AddGood(QtWidgets.QDialog):
 
         gridLayout.addWidget(self.clearButton, 4, 0)
         gridLayout.addWidget(self.okButton, 5, 0)
-        gridLayout.setColumnMinimumWidth(0, 200)
+        self.setMinimumSize(400, 400)
         self.setLayout(gridLayout)
 
     def save(self):
@@ -90,21 +90,37 @@ class AddGood(QtWidgets.QDialog):
         for btn in self.listTypeRadioButtons:
             if btn.isChecked():
                 g.type = btn.text()
+        gen = []
 
-        for btn in self.listModificationRadioButtons:
+        for btn in self.listGenderCheckBoxButtons:
             if btn.isChecked():
-                g.modification = btn.text()
+                gen.append(btn.text())
 
-        print("Сохранен товар:")
-        g.show()
+        g.gender = gen
+
+        if g.validate() is False:
+            print("При сохранении товара возникла ошибка")
+            return
+        else:
+            gr = GoodRepository()
+            gr.save(g)
+
+            print("Сохранен товар:")
+            g.show()
+
+            gr.show_saved_goods()
 
     def clear(self):
         self.nameGoodLineEdit.clear()
         self.quantityGoodLineEdit.clear()
         self.buyPriceGoodLineEdit.clear()
         self.salePriceGoodLineEdit.clear()
-        for btn in self.listRadioButtons:
+        for btn in self.listButtons:
             if btn.isChecked():
-                btn.setAutoExclusive(False)
-                btn.setChecked(False)
-                btn.setAutoExclusive(True)
+                if isinstance(btn, QtWidgets.QRadioButton):
+                    btn.setAutoExclusive(False)
+                    btn.setChecked(False)
+                    btn.setAutoExclusive(True)
+                elif isinstance(btn, QtWidgets.QCheckBox):
+                    btn.setChecked(False)
+

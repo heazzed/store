@@ -1,10 +1,12 @@
 from PyQt5 import QtWidgets
+from Pages.main_window import MainWindow
 
-from Pages.add_good import AddGood
 
 app = QtWidgets.QApplication([])
 
-window = AddGood()
-window.show()
+desktop = app.desktop().availableGeometry().center()
+
+main_window = MainWindow(desktop)
+main_window.show()
 
 app.exec_()
