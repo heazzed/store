@@ -108,7 +108,7 @@ class AddGood(QtWidgets.QDialog):
             print("Сохранен товар:")
             g.show()
 
-            gr.show_saved_goods()
+            gr.show_current_saved_goods()
 
     def clear(self):
         self.nameGoodLineEdit.clear()

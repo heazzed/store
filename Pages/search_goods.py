@@ -7,7 +7,9 @@ class Goods(QtWidgets.QDialog):
     def __init__(self, size):
         super().__init__()
 
-        self.setWindowTitle("Товары")
+        gr = GoodRepository()
+
+        self.setWindowTitle("Поиск товаров")
         self.db = Database()
         self.db.connect()
 
@@ -27,6 +29,9 @@ class Goods(QtWidgets.QDialog):
         self.typeBox.setLayout(self.typeLayout)
         gridLayout.addWidget(self.typeBox, 0, 0)
 
+        self.availabilityCheckBox = QtWidgets.QCheckBox("Только доступные для заказа товары")
+        gridLayout.addWidget(self.availabilityCheckBox, 1, 0)
+
         self.searchBox = QtWidgets.QGroupBox(self)
         self.searchLayout = QtWidgets.QVBoxLayout()
 
@@ -39,35 +44,27 @@ class Goods(QtWidgets.QDialog):
         self.searchLayout.addWidget(self.searchLineEdit)
         self.searchLayout.addWidget(self.searchButton)
         self.searchBox.setLayout(self.searchLayout)
-        gridLayout.addWidget(self.searchBox, 1, 0)
+        gridLayout.addWidget(self.searchBox, 2, 0)
 
         self.resultBox = QtWidgets.QGroupBox(self)
         self.resultLayout = QtWidgets.QVBoxLayout()
         self.resultLabel = QtWidgets.QLabel("Результаты поиска", self)
 
-        self.countResults = self.get_goods_count()
+        self.countResults = gr.get_goods_count(self.db)
         self.resultTable = QtWidgets.QTableWidget(self.countResults, 8)
         self.resultTable.setHorizontalHeaderLabels(["Доступен", "ID", "Название", "Количество", "Закупочная цена",
                                                     "Розничная цена", "Тип товара", "Пол"])
-        self.selectResult = self.get_all_items()
+        self.selectResult = gr.get_all_goods(self.db)
         self.query_result_to_table_item(self.selectResult)
 
         self.resultTable.resizeColumnsToContents()
         self.resultLayout.addWidget(self.resultLabel)
         self.resultLayout.addWidget(self.resultTable)
         self.resultBox.setLayout(self.resultLayout)
-        gridLayout.addWidget(self.resultBox, 2, 0)
+        gridLayout.addWidget(self.resultBox, 3, 0)
 
         self.setLayout(gridLayout)
         self.setMinimumSize(800, 500)
-
-    def get_goods_count(self):
-        query = self.get_all_items()
-        return len(query)
-
-    def get_all_items(self):
-        query = "SELECT * FROM goods"
-        return self.db.select_script(query)
 
     def query_result_to_table_item(self, query_result):
         i = 0
@@ -96,7 +93,3 @@ class Goods(QtWidgets.QDialog):
                 self.resultTable.setItem(i, j, QtWidgets.QTableWidgetItem(str(item)))
                 j += 1
             i += 1
-
-
-
-
