@@ -7,13 +7,15 @@ class Good:
     salePrice = 0
     isAvailable = 0
     type = 0  # text or number? here or somewhere else?
-    gender = []  # text or number? here or somewhere else?
+    textType = ""
+    gender = 2
+    textGender = []  # text or number? here or somewhere else?
 
     def __init__(self):
         super().__init__()
 
     def show(self):
-        print(self.name, self.quantity, self.buyPrice, self.salePrice, self.type, self.gender)
+        print(self.name, self.quantity, self.buyPrice, self.salePrice, self.textType, self.textGender)
 
     def validate(self):  # make in GoodRepos?
         if not self.quantity.isdigit():

@@ -1,11 +1,15 @@
 from PyQt5 import QtWidgets
 from Entities.good import Good
 from Repositories.good_repository import GoodRepository
+from Database.db import Database
 
 
 class AddGood(QtWidgets.QDialog):
-    def __init__(self, size):
+    def __init__(self, size, db):
         super().__init__()
+
+        self.db = db
+        self.db.connect()
 
         self.setWindowTitle("Добавление товара")
 
@@ -15,9 +19,11 @@ class AddGood(QtWidgets.QDialog):
         gridLayout = QtWidgets.QGridLayout()
 
         self.nameGoodLabel = QtWidgets.QLabel("Наименование", self)
+        self.nameGoodLabel.setToolTip("Введите название товара")
         self.nameGoodLineEdit = QtWidgets.QLineEdit(self)
 
         self.quantityGoodLabel = QtWidgets.QLabel("Количество", self)
+        self.quantityGoodLabel.setToolTip("Введите количество товара (число)")
         self.quantityGoodLineEdit = QtWidgets.QLineEdit(self)
 
         formLayout.addRow(self.nameGoodLabel, self.nameGoodLineEdit)
@@ -27,9 +33,11 @@ class AddGood(QtWidgets.QDialog):
         self.priceBox = QtWidgets.QGroupBox("Цены", self)
 
         self.buyPriceGoodLabel = QtWidgets.QLabel("Закупочная цена", self)
+        self.buyPriceGoodLabel.setToolTip("Введите закупочную цену товара (число)")
         self.buyPriceGoodLineEdit = QtWidgets.QLineEdit(self)
 
         self.salePriceGoodLabel = QtWidgets.QLabel("Розничная цена", self)
+        self.salePriceGoodLabel.setToolTip("Введите розничную цену товара (число)")
         self.salePriceGoodLineEdit = QtWidgets.QLineEdit(self)
 
         self.priceLayout = QtWidgets.QVBoxLayout()
@@ -41,6 +49,7 @@ class AddGood(QtWidgets.QDialog):
         gridLayout.addWidget(self.priceBox, 1, 0)
 
         self.typeBox = QtWidgets.QGroupBox("Тип товара")
+        self.typeBox.setWhatsThis("Выберите тип товара")
         self.typeButton0 = QtWidgets.QRadioButton("Игрушка")
         self.typeButton1 = QtWidgets.QRadioButton("Одежда")
         self.typeButton2 = QtWidgets.QRadioButton("Обувь")
@@ -53,6 +62,7 @@ class AddGood(QtWidgets.QDialog):
         gridLayout.addWidget(self.typeBox, 2, 0)
 
         self.genderBox = QtWidgets.QGroupBox("Пол")
+        self.genderBox.setWhatsThis("Выберите для кого товар предназначен")
         self.genderCheckBox0 = QtWidgets.QCheckBox("Для девочек")
         self.genderCheckBox1 = QtWidgets.QCheckBox("Для мальчиков")
 
@@ -89,21 +99,38 @@ class AddGood(QtWidgets.QDialog):
         g.salePrice = self.salePriceGoodLineEdit.text()
         for btn in self.listTypeRadioButtons:
             if btn.isChecked():
-                g.type = btn.text()
-        gen = []
-
+                g.textType = btn.text()
+                if btn is self.typeButton0:
+                    g.type = 0
+                elif btn is self.typeButton1:
+                    g.type = 1
+                elif btn is self.typeButton2:
+                    g.type = 2
+        textgen = []
+        boy_gen_count = 0
+        girl_gen_count = 0
         for btn in self.listGenderCheckBoxButtons:
             if btn.isChecked():
-                gen.append(btn.text())
+                textgen.append(btn.text())
+                if btn is self.genderCheckBox0:
+                    girl_gen_count += 1
+                else:
+                    boy_gen_count += 1
+        if boy_gen_count == 1 and girl_gen_count == 1:
+            g.gender = 2
+        elif boy_gen_count != 0:
+            g.gender = 1
+        elif girl_gen_count != 0:
+            g.gender = 0
 
-        g.gender = gen
+        g.textGender = textgen
 
         if g.validate() is False:
             print("При сохранении товара возникла ошибка")
             return
         else:
             gr = GoodRepository()
-            gr.save(g)
+            gr.save(g, self.db)
 
             print("Сохранен товар:")
             g.show()

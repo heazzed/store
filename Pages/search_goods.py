@@ -1,20 +1,28 @@
 from PyQt5 import QtWidgets
-from Database.db import Database
 from Repositories.good_repository import GoodRepository
+# from Tools.menu import MenuBar
 
 
-class Goods(QtWidgets.QDialog):
-    def __init__(self, size):
+class SearchGoods(QtWidgets.QDialog):
+    def __init__(self, size, db):
         super().__init__()
 
-        gr = GoodRepository()
+        self.gr = GoodRepository()
 
         self.setWindowTitle("Поиск товаров")
-        self.db = Database()
-        self.db.connect()
+
+        self.db = db
 
         self.frameGeometry().moveCenter(size)
         gridLayout = QtWidgets.QGridLayout()
+
+        # '''
+        # Need MenuBar here?
+        # '''
+
+        # self.menuBar = MenuBar(size)
+        # mb = self.menuBar.get_menu_bar()
+        # gridLayout.setMenuBar(mb)
 
         self.typeBox = QtWidgets.QGroupBox(self)
         self.typeLayout = QtWidgets.QVBoxLayout()
@@ -50,18 +58,15 @@ class Goods(QtWidgets.QDialog):
         self.resultLayout = QtWidgets.QVBoxLayout()
         self.resultLabel = QtWidgets.QLabel("Результаты поиска", self)
 
-        self.countResults = gr.get_goods_count(self.db)
-        self.resultTable = QtWidgets.QTableWidget(self.countResults, 8)
-        self.resultTable.setHorizontalHeaderLabels(["Доступен", "ID", "Название", "Количество", "Закупочная цена",
-                                                    "Розничная цена", "Тип товара", "Пол"])
-        self.selectResult = gr.get_all_goods(self.db)
-        self.query_result_to_table_item(self.selectResult)
-
-        self.resultTable.resizeColumnsToContents()
-        self.resultLayout.addWidget(self.resultLabel)
-        self.resultLayout.addWidget(self.resultTable)
-        self.resultBox.setLayout(self.resultLayout)
+        self.countResults = ""
+        self.resultTable = QtWidgets.QTableWidget()
+        self.selectResult = ""
+        self.create_result_table()
         gridLayout.addWidget(self.resultBox, 3, 0)
+
+        self.updateInfoButton = QtWidgets.QPushButton("Обновить данные", self)
+        self.updateInfoButton.clicked.connect(self.create_result_table)
+        gridLayout.addWidget(self.updateInfoButton, 4, 0)
 
         self.setLayout(gridLayout)
         self.setMinimumSize(800, 500)
@@ -93,3 +98,17 @@ class Goods(QtWidgets.QDialog):
                 self.resultTable.setItem(i, j, QtWidgets.QTableWidgetItem(str(item)))
                 j += 1
             i += 1
+
+    def create_result_table(self):
+        self.countResults = self.gr.get_goods_count(self.db)
+        self.resultTable.setRowCount(self.countResults)
+        self.resultTable.setColumnCount(8)
+        self.resultTable.setHorizontalHeaderLabels(["Доступен", "ID", "Название", "Количество", "Закупочная цена",
+                                                    "Розничная цена", "Тип товара", "Пол"])
+        self.selectResult = self.gr.get_all_goods(self.db)
+        self.query_result_to_table_item(self.selectResult)
+
+        self.resultTable.resizeColumnsToContents()
+        self.resultLayout.addWidget(self.resultLabel)
+        self.resultLayout.addWidget(self.resultTable)
+        self.resultBox.setLayout(self.resultLayout)
